@@ -117,7 +117,14 @@ def simulate(numPlayers, hand, boardcards):
     for card in known:
         deck.remove(card)
     
-    for i in numPlayers:
-        random.sample(deck, 2)
+    won = 0
+    for _ in range(1000):
+        results = []
+        for i in range(numPlayers):
+            results.append(better(hand, random.sample(deck, 2), boardcards) < 0)
+        if all(results):
+            won += 1
+    
+    return won/1000
 
-
+print(simulate(3, ['4H', '3H'], ['6H', '4D', 'AH']))
