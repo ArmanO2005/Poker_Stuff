@@ -108,23 +108,51 @@ def better(hand1, hand2, boardcards):
     return handRank(hand1)[0] - handRank(hand2)[0]
 
 
-def simulate(numPlayers, hand, boardcards):
+def simulate(numPlayers, hand, boardCards, trials = 1000):
     with open('Deck.json', 'r') as file:
         data = json.load(file)
     deck = [card["cardID"] for card in data['Deck']]
 
-    known = list(hand) + boardcards
+    known = list(hand) + boardCards
     for card in known:
         deck.remove(card)
     
-    won = 0
-    for _ in range(1000):
-        results = []
-        for i in range(numPlayers):
-            results.append(better(hand, random.sample(deck, 2), boardcards) < 0)
-        if all(results):
-            won += 1
-    
-    return won/1000
+    if len(boardCards) <= 5:
+        won = 0
+        for _ in range(trials):
+            trialDeck = deck.copy()
+            results = []
 
-print(simulate(3, ['4H', '3H'], ['6H', '4D', 'AH']))
+            trialBoard = boardCards.copy()
+
+            while len(trialBoard) < 5:
+                trialBoard.append(random.choice(trialDeck))
+                trialDeck.remove(trialBoard[-1])
+
+            for i in range(numPlayers):
+                cards = random.sample(trialDeck, 2)
+                trialDeck.remove(cards[0])
+                trialDeck.remove(cards[1])
+                results.append(better(hand, cards, trialBoard) > 0)
+            if all(results):
+                won += 1
+        
+        return won/trials
+    
+    else:
+        won = 0
+        for _ in range(trials):
+            trialDeck = deck.copy()
+            results = []
+
+            for i in range(numPlayers):
+                cards = random.sample(trialDeck, 2)
+                trialDeck.remove(cards[0])
+                trialDeck.remove(cards[1])
+                results.append(better(hand, cards, boardCards) < 0)
+            if all(results):
+                won += 1
+        
+        return won/trials
+
+print(simulate(1, ['AC', 'AH'], [], trials=10000))
