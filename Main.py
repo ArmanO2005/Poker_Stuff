@@ -3,6 +3,7 @@ import pandas as pd
 import scipy as sp
 import json
 import random
+from itertools import combinations
 
 
 def handRank(hand):
@@ -112,6 +113,8 @@ def handRank(hand):
                         if strength < 7:
                             strength = 7 + card/100 + card2/10000
                             handType = 'Full House'
+
+    strength += maxCard/1000000
     
     return strength, handType
 
@@ -173,4 +176,4 @@ def simulate(numPlayers, hand, boardCards, trials = 1000):
         
         return won/trials
 
-print(simulate(1, ['2C', '2H'], [], trials=10000))
+print(simulate(1, ['KD', '6H'], [], trials=20000))
