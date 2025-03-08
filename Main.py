@@ -71,20 +71,38 @@ def handRank(hand):
                     strength += maxCard/100
         
         # Check for straight if there are 5 or more cards
-        for card in cardNums:
-            temp = card
-            for _ in range(5):
-                if temp + 1 in cardNums:
-                    temp += 1
-            if temp == card + 4:
-                if handType == 'Flush':
-                    strength = 9
-                    handType = 'Straight Flush'
-                else:
-                    if strength < 5:
-                        strength = 5
-                        handType = 'Straight'
-                strength += temp/100
+        handLib = {hand: [hand[:-1], hand[-1]] for hand in hand}
+        for card in list(handLib.keys()):
+            if handLib[card][0] in faceTransformation:
+                handLib[card][0] = faceTransformation[handLib[card][0]]
+            handLib[card][0] = int(handLib[card][0])
+            if handLib[card][0] == 14:
+                new_card = "1" + handLib[card][1]
+                handLib[new_card] = [1, handLib[card][1]]
+        
+        straightSuits = []
+        for card in list(handLib.values()):
+            temp = card[0]
+            straightSuits.append(card)
+            for cardComp in list(handLib.values()):
+                if cardComp[0] == temp + 1:
+                    temp = cardComp[0]
+                    straightSuits.append(cardComp)
+                if len(straightSuits) >= 5:
+                    straightSuits = sorted(straightSuits, key=lambda x: x[0])
+                    for s in ['H', 'D', 'C', 'S']:
+                        filteredStraightFlush = list(filter(lambda x : x[1] == s, straightSuits))
+                        if len(filteredStraightFlush) >= 5:
+                            if strength < 8:
+                                strength = 8 + max([i[0] for i in filteredStraightFlush])/100
+                                handType = 'Straight Flush'
+                                break
+                        else:
+                            strength = 4 + max([i[0] for i in straightSuits])/100
+                            handType = 'Straight'
+                            break
+            straightSuits = []
+
 
         # Check for a full house
         for card in cardNums:
@@ -155,4 +173,4 @@ def simulate(numPlayers, hand, boardCards, trials = 1000):
         
         return won/trials
 
-print(simulate(1, ['AC', 'AH'], [], trials=10000))
+print(simulate(1, ['2C', '2H'], [], trials=10000))
