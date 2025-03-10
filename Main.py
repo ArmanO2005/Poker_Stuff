@@ -1,9 +1,7 @@
 import numpy as np
 import pandas as pd
-import scipy as sp
 import json
 import random
-from itertools import combinations
 
 
 def handRank(hand):
@@ -155,7 +153,7 @@ def simulate(numPlayers, hand, boardCards, trials = 1000):
                 trialDeck.remove(cards[0])
                 trialDeck.remove(cards[1])
                 results.append(better(hand, cards, trialBoard) > 0)
-            if all(results):
+            if all([i > 0 for i in results]):
                 won += 1
         
         return won/trials
@@ -171,9 +169,9 @@ def simulate(numPlayers, hand, boardCards, trials = 1000):
                 trialDeck.remove(cards[0])
                 trialDeck.remove(cards[1])
                 results.append(better(hand, cards, boardCards) < 0)
-            if all(results):
+            if all([i > 0 for i in results]):
                 won += 1
         
         return won/trials
 
-print(simulate(1, ['KD', '6H'], [], trials=20000))
+print(simulate(1, ['KD', 'KH'], [], trials=20000))
