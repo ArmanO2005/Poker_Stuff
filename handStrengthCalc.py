@@ -6,7 +6,7 @@ import random
 
 def handRank(hand):
     """
-    This function takes a list of cards and returns a number representing the rank of the hand
+    This function takes a list of cards and returns a number and category representing the strength of the best 5-card hand
     """
     strength = 0.0
     handType = ''
@@ -33,8 +33,9 @@ def handRank(hand):
     # Check for pair
     for card in cardNums:
         if cardNums.count(card) == 2:
-            strength = 1 + card/100
-            handType = 'Pair'
+            if strength < 1 + card/100:
+                strength = 1 + card/100
+                handType = 'Pair'
 
             #check for two pair
             if len(hand) >= 4:
@@ -52,65 +53,76 @@ def handRank(hand):
             
         # Check for three of a kind
         if cardNums.count(card) == 3:
-            strength = 3 + card/100
-            handType = 'Three of a Kind'        
+            if strength < 3 + card/100:
+                strength = 3 + card/100
+                handType = 'Three of a Kind'
 
 
-    if len(hand) >= 5:
-
-        # Check for a flush:
-        for suit in cardSuits:
-            if cardSuits.count(suit) >= 5:
-                if strength < 6:
-                    strength = 6
-                    handType = 'Flush'
-                    suitIndexes = [True if cardSuits[i] == suit else False for i in range(len(cardSuits))]
-                    cardNums = [cardNums[i] for i in range(len(cardNums)) if suitIndexes[i]]
-                    maxCard = max(cardNums)
-                    strength += maxCard/100
-        
-        # Check for straight if there are 5 or more cards
-        handLib = {hand: [hand[:-1], hand[-1]] for hand in hand}
-        for card in list(handLib.keys()):
-            if handLib[card][0] in faceTransformation:
-                handLib[card][0] = faceTransformation[handLib[card][0]]
-            handLib[card][0] = int(handLib[card][0])
-            if handLib[card][0] == 14:
-                new_card = "1" + handLib[card][1]
-                handLib[new_card] = [1, handLib[card][1]]
-        
-        straightSuits = []
-        for card in list(handLib.values()):
-            temp = card[0]
-            straightSuits.append(card)
-            for cardComp in list(handLib.values()):
-                if cardComp[0] == temp + 1:
-                    temp = cardComp[0]
-                    straightSuits.append(cardComp)
-                if len(straightSuits) >= 5:
-                    straightSuits = sorted(straightSuits, key=lambda x: x[0])
-                    for s in ['H', 'D', 'C', 'S']:
-                        filteredStraightFlush = list(filter(lambda x : x[1] == s, straightSuits))
-                        if len(filteredStraightFlush) >= 5:
-                            if strength < 8:
-                                strength = 8 + max([i[0] for i in filteredStraightFlush])/100
-                                handType = 'Straight Flush'
-                                break
-                        else:
-                            strength = 4 + max([i[0] for i in straightSuits])/100
-                            handType = 'Straight'
+    # Check for a flush:
+    for suit in cardSuits:
+        if cardSuits.count(suit) >= 5:
+            if strength < 6:
+                strength = 6
+                handType = 'Flush'
+                suitIndexes = [True if cardSuits[i] == suit else False for i in range(len(cardSuits))]
+                cardNums = [cardNums[i] for i in range(len(cardNums)) if suitIndexes[i]]
+                maxCard = max(cardNums)
+                strength += maxCard/100
+    
+    # Check for straight if there are 5 or more cards
+    handLib = {hand: [hand[:-1], hand[-1]] for hand in hand}
+    for card in list(handLib.keys()):
+        if handLib[card][0] in faceTransformation:
+            handLib[card][0] = faceTransformation[handLib[card][0]]
+        handLib[card][0] = int(handLib[card][0])
+        if handLib[card][0] == 14:
+            new_card = "1" + handLib[card][1]
+            handLib[new_card] = [1, handLib[card][1]]
+    
+    def fiveInARow(list):
+        count = 0
+        for i in list:
+            if i:
+                count += 1
+            else:
+                count = 0
+        if count >= 5:
+            return True
+        return False
+    
+    straightSuits = []
+    for card in list(handLib.values()):
+        temp = card[0]
+        straightSuits.append(card)
+        for cardComp in list(handLib.values()):
+            if cardComp[0] == temp + 1:
+                temp = cardComp[0]
+                straightSuits.append(cardComp)
+            if len(straightSuits) >= 5:
+                for s in ['D', 'C', 'S', 'H']:
+                    filteredStraightFlush = [card[-1] == s for card in straightSuits]
+                    if fiveInARow(filteredStraightFlush):
+                        if strength < 8:
+                            strength = 8 + max([i[0] for i in straightSuits])/100
+                            handType = 'Straight Flush'
                             break
-            straightSuits = []
+                else:
+                    if strength < 4:
+                        strength = 4 + max([i[0] for i in straightSuits])/100
+                        handType = 'Straight'
+                        break
+
+        straightSuits = []
 
 
-        # Check for a full house
-        for card in cardNums:
-            if cardNums.count(card) == 3:
-                for card2 in cardNums:
-                    if cardNums.count(card2) == 2:
-                        if strength < 7:
-                            strength = 7 + card/100 + card2/10000
-                            handType = 'Full House'
+    # Check for a full house
+    for card in cardNums:
+        if cardNums.count(card) == 3:
+            for card2 in cardNums:
+                if cardNums.count(card2) == 2:
+                    if strength < 7:
+                        strength = 7 + card/100 + card2/10000
+                        handType = 'Full House'
 
     strength += maxCard/1000000
     
@@ -174,4 +186,4 @@ def simulate(numPlayers, hand, boardCards, trials = 1000):
         
         return won/trials
 
-print(simulate(1, ['KD', 'KH'], [], trials=20000))
+print(handRank(['AC', '2D', '3D','4D', '5D', 'KC']))
